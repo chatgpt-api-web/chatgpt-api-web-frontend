@@ -85,7 +85,7 @@ export default function App() {
     const [infoText, setInfoText] = useState<string | null>(null);
 
     const [dialogs, setDialogs] = useState<IDialog[]>([]);
-    const clearDialog = () => setDialogs([]);
+    const clearDialogs = () => setDialogs([]);
     const DIALOG_COUNT_MAX = 10;
 
     // Begin -- Log in stuffs
@@ -126,7 +126,7 @@ export default function App() {
     const handleClear = (_: MouseEvent<HTMLButtonElement>) => {
         setInfoText(null);
         setErrorText(null);
-        clearDialog();
+        clearDialogs();
     }
 
     const handleSubmit = async (_: MouseEvent<HTMLButtonElement>) => {
@@ -210,8 +210,8 @@ export default function App() {
                     Avoid polite or wordy language to save the use of token.
                 </Alert>
                 <Alert severity="info">
-                    A conversation with long history is costly. Use the clear button to start a new conversation as
-                    much as possible.
+                    A conversation with long history is costly. Use the clear button to start a new conversation
+                    whenever possible.
                 </Alert>
             </Stack>
 
