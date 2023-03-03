@@ -3,7 +3,7 @@ import {Button, Stack, TextField, Card, Typography} from "@mui/material";
 import AutoAlert from '../AutoAlert/AutoAlert';
 import CenteredElement from "../CenteredElement/CenteredElement";
 
-async function loginUser(username: string, password: string, errorCallback: (reason: any) => void) {
+async function loginUser(username: string, password: string) {
     return fetch('/backend/auth/login/token/', {
         method: 'POST',
         headers: {
@@ -15,8 +15,7 @@ async function loginUser(username: string, password: string, errorCallback: (rea
         })
     })
         .then((response) => response.json())
-        .then((data) => data['token'])
-        .catch((err) => errorCallback(err));
+        .then((data) => data.token);
 }
 
 export default function Login({setToken}: { setToken: (token: string) => void }) {
@@ -24,18 +23,14 @@ export default function Login({setToken}: { setToken: (token: string) => void })
     const [password, setPassword] = useState<string>("");
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    const handleSubmit = async (event: MouseEvent<HTMLButtonElement>) => {
+    const handleSubmit = async (_: MouseEvent<HTMLButtonElement>) => {
         setErrorMessage(null);
-        let detailedErrorMessage: string = '';
-        const token = await loginUser(username, password, (reason) => {
-            detailedErrorMessage = reason.toString();
-            setErrorMessage(detailedErrorMessage);
-        });
-        if (token) {
+        return loginUser(username, password).then((token) => {
+            if (!token) throw new Error('Login failed.');
             setToken(token);
-        } else {
-            setErrorMessage(`Login failed. ${detailedErrorMessage}`);
-        }
+        }).catch((error) => {
+            setErrorMessage(error.toString());
+        });
     }
 
     return (

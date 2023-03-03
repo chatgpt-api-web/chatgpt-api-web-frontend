@@ -14,6 +14,7 @@ import {
 // import logo from './logo.svg';
 import './App.css';
 import Login from './components/Login/Login';
+import AutoAlert from "./components/AutoAlert/AutoAlert";
 
 
 async function isLoggedIn(token: string | null) {
@@ -30,10 +31,62 @@ async function isLoggedIn(token: string | null) {
         .catch((err) => alert(err));
 }
 
+interface IDialog {
+    role: string;
+    content: string;
+}
+
+async function getChatCompletions(token: string, contextDialogs: IDialog[]) {
+    console.assert(contextDialogs !== null, "contextDialogs should not be null")
+    console.assert(contextDialogs.length !== 0, "contextDialogs should not be empty");
+    for (let i in contextDialogs) {
+        console.assert(contextDialogs[i].content.length !== 0, "the content in contextDialogs should not be empty");
+        console.assert(["user", "assistant"].includes(contextDialogs[i].role), `unexpected role ${contextDialogs[i].role}`);
+    }
+
+    return fetch('/backend/openai/chat/completions/', {
+        method: 'POST',
+        body: JSON.stringify({
+            "model": "gpt-3.5-turbo",
+            "messages": contextDialogs,
+        }),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token!}`,
+        },
+    })
+        .then((response) => {
+            if (response.status !== 200) {
+                throw new Error(`HTTP code ${response.status}`);
+            }
+            return response.json();
+        })
+        .then((data) => {
+            if (data.status !== 200) {
+                throw new Error(`HTTP code ${data['status']}`);
+            }
+            if (data.data === null) {
+                throw new Error("Empty response.");
+            }
+            const choices = data.data.choices;
+            const newDialogs: IDialog[] = [...contextDialogs];
+            for (let i in choices) {
+                newDialogs.push(choices[i].message);
+            }
+            return newDialogs;
+        });
+}
+
+let waitingForResponse = false;
+
 export default function App() {
-    const [questionValueInput, setQuestionValueInput] = useState("Tell me a joke");
-    const [questionValue, setQuestionValue] = useState("Tell me a joke");
-    const [answerValue, setAnswerValue] = useState("Get a response by clicking the submit button.");
+    const [questionValueInput, setQuestionValueInput] = useState<string>("Tell me a joke");
+    const [errorText, setErrorText] = useState<string | null>(null);
+    const [infoText, setInfoText] = useState<string | null>(null);
+
+    const [dialogs, setDialogs] = useState<IDialog[]>([]);
+    const clearDialog = () => setDialogs([]);
+    const DIALOG_COUNT_MAX = 10;
 
     // Begin -- Log in stuffs
     const [loggedInInitialized, setLoggedInInitialized] = useState<boolean>(false);
@@ -66,75 +119,106 @@ export default function App() {
         return <Login setToken={saveToken}/>
     }
 
-    const handleLogout = (event: MouseEvent<HTMLButtonElement>) => {
-        saveToken(null);
-    }
+    const handleLogout = (_: MouseEvent<HTMLButtonElement>) => saveToken(null);
 
     // End -- Log in stuffs
 
+    const handleClear = (_: MouseEvent<HTMLButtonElement>) => {
+        setInfoText(null);
+        setErrorText(null);
+        clearDialog();
+    }
 
-    const handleSubmit = (event: MouseEvent<HTMLButtonElement>) => {
-        setQuestionValue(questionValueInput);
-        setAnswerValue("Please wait...");
+    const handleSubmit = async (_: MouseEvent<HTMLButtonElement>) => {
+        if (waitingForResponse) {
+            console.info("The submit button is clicked more than once. Ignored.");
+            return;
+        }
 
-        fetch('/backend/openai/chat/completions/', {
-            method: 'POST',
-            body: JSON.stringify({
-                "model": "gpt-3.5-turbo",
-                "messages": [{"role": "user", "content": questionValueInput}]
-            }),
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Token ${token!}`,
-            },
-        })
-            .then((response) => {
-                if (response.status !== 200) {
-                    throw new Error(`HTTP code ${response.status}`);
-                }
-                return response.json();
-            })
-            .then((data) => {
-                if (data['status'] !== 200) {
-                    throw new Error(`HTTP code ${data['status']}`);
-                }
-                const ans = data['data']['choices'][0]['message']['content'].trim();
-                setAnswerValue(ans);
-            })
-            .catch((err) => {
-                setAnswerValue(`Error: ${err.message}`)
-            });
+        setInfoText(null);
+        setErrorText(null);
+
+        if (dialogs.length >= DIALOG_COUNT_MAX) {
+            setErrorText("Maximum dialog depth reached. It is costly to ignore the limit.")
+            return;
+        }
+
+        if (questionValueInput.length === 0) {
+            setErrorText("The message text is empty.")
+            return;
+        }
+
+        console.assert(token !== null);
+
+        const onSubmitStarted = () => {
+            waitingForResponse = true;
+            setInfoText("Please wait...");
+        }
+        const onSubmitEnded = () => {
+            waitingForResponse = false;
+            setInfoText(null);
+            setQuestionValueInput("");
+        }
+
+        onSubmitStarted();
+        let newDialogs = [...dialogs, {role: "user", content: questionValueInput}];
+        setDialogs(newDialogs);
+
+        return getChatCompletions(token!, newDialogs).then(
+            (retDialogs) => {
+                setDialogs(retDialogs);
+                onSubmitEnded();
+            }
+        ).catch(
+            (error) => {
+                setErrorText(error);
+                onSubmitEnded();
+            }
+        );
     };
 
     return (
         <div className="App">
-            <List sx={{py: 2}}>
-                <ListItem>
-                    <ListItemIcon>
-                        <Avatar variant="rounded"/>
-                    </ListItemIcon>
-                    <ListItemText style={{ whiteSpace: 'pre-wrap' }}>{questionValue}</ListItemText>
-                </ListItem>
-                <ListItem>
-                    <ListItemIcon>
-                        <Avatar variant="rounded" src="img/robot.svg"/>
-                    </ListItemIcon>
-                    <ListItemText style={{ whiteSpace: 'pre-wrap' }}>{answerValue}</ListItemText>
-                </ListItem>
+            <List>
+                {dialogs.map((dialog, _) => {
+                    if (dialog.role === "user") {
+                        return (
+                            <ListItem>
+                                <ListItemIcon>
+                                    <Avatar variant="rounded"/>
+                                </ListItemIcon>
+                                <ListItemText style={{whiteSpace: 'pre-wrap'}}>{dialog.content.trim()}</ListItemText>
+                            </ListItem>
+                        )
+                    } else {
+                        return (
+                            <ListItem>
+                                <ListItemIcon>
+                                    <Avatar variant="rounded" src="img/robot.svg"/>
+                                </ListItemIcon>
+                                <ListItemText style={{whiteSpace: 'pre-wrap'}}>{dialog.content.trim()}</ListItemText>
+                            </ListItem>
+                        )
+                    }
+                })}
             </List>
 
-            <Stack sx={{py: 2}} spacing={2}>
+            <Stack sx={{py: 1}} spacing={1}>
+                <AutoAlert severity="error" children={errorText}/>
+                <AutoAlert severity="info" children={infoText}/>
                 <Alert severity="info">
-                    Note: A conversation with history is costly. This feature is not implemented now.
+                    Avoid polite or wordy language to save the use of token.
                 </Alert>
                 <Alert severity="info">
-                    Note: Avoid polite or wordy language to save the use of token.
+                    A conversation with long history is costly. Use the clear button to start a new conversation as
+                    much as possible.
                 </Alert>
             </Stack>
 
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}
-                   sx={{px: 2, py: 2}}>
+                   sx={{px: 2, py: 1}}>
                 <Button onClick={handleLogout} variant="outlined">Logout</Button>
+                <Button onClick={handleClear} variant="outlined">Clear</Button>
                 <TextField
                     fullWidth
                     label="Input your message"
@@ -150,4 +234,3 @@ export default function App() {
         </div>
     );
 }
-
