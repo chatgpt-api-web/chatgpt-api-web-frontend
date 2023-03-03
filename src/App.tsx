@@ -114,13 +114,13 @@ export default function App() {
                     <ListItemIcon>
                         <Avatar variant="rounded"/>
                     </ListItemIcon>
-                    <ListItemText>{questionValue}</ListItemText>
+                    <ListItemText style={{ whiteSpace: 'pre-wrap' }}>{questionValue}</ListItemText>
                 </ListItem>
                 <ListItem>
                     <ListItemIcon>
                         <Avatar variant="rounded" src="img/robot.svg"/>
                     </ListItemIcon>
-                    <ListItemText>{answerValue}</ListItemText>
+                    <ListItemText style={{ whiteSpace: 'pre-wrap' }}>{answerValue}</ListItemText>
                 </ListItem>
             </List>
 
