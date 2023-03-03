@@ -1,17 +1,6 @@
 import React, {MouseEvent, useState} from 'react';
-import {
-    Avatar,
-    Stack,
-    Button,
-    Alert,
-    TextField,
-    List,
-    ListItem,
-    ListItemIcon,
-    ListItemText,
-} from "@mui/material";
+import {Alert, Avatar, Button, List, ListItem, ListItemIcon, ListItemText, Stack, TextField,} from "@mui/material";
 
-// import logo from './logo.svg';
 import './App.css';
 import Login from './components/Login/Login';
 import AutoAlert from "./components/AutoAlert/AutoAlert";
@@ -119,13 +108,16 @@ export default function App() {
         return <Login setToken={saveToken}/>
     }
 
-    const handleLogout = (_: MouseEvent<HTMLButtonElement>) => saveToken(null);
+    const handleLogout = (_: MouseEvent<HTMLButtonElement>) => {
+        saveToken(null);
+    }
 
     // End -- Log in stuffs
 
     const handleClear = (_: MouseEvent<HTMLButtonElement>) => {
         setInfoText(null);
         setErrorText(null);
+        setQuestionValueInput("");
         clearDialogs();
     }
 
@@ -178,7 +170,7 @@ export default function App() {
     };
 
     return (
-        <div className="App">
+        <div>
             <List>
                 {dialogs.map((dialog, _) => {
                     if (dialog.role === "user") {
@@ -217,8 +209,10 @@ export default function App() {
 
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}
                    sx={{px: 2, py: 1}}>
-                <Button onClick={handleLogout} variant="outlined">Logout</Button>
-                <Button onClick={handleClear} variant="outlined">Clear</Button>
+                <Stack direction="column" alignItems="center" justifyContent="space-between" spacing={1}>
+                    <Button onClick={handleClear} variant="outlined">Clear</Button>
+                    <Button onClick={handleLogout} variant="outlined">Logout</Button>
+                </Stack>
                 <TextField
                     fullWidth
                     label="Input your message"
