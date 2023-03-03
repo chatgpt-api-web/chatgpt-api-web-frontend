@@ -1,5 +1,5 @@
 import React, {MouseEvent, useState} from 'react';
-import {Button, Stack, TextField, Grid, Card, Typography} from "@mui/material";
+import {Button, Stack, TextField, Card, Typography} from "@mui/material";
 import AutoAlert from '../AutoAlert/AutoAlert';
 import CenteredElement from "../CenteredElement/CenteredElement";
 

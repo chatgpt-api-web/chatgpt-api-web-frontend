@@ -8,13 +8,12 @@ import {
     List,
     ListItem,
     ListItemIcon,
-    ListItemText, Typography,
+    ListItemText,
 } from "@mui/material";
 
 // import logo from './logo.svg';
 import './App.css';
 import Login from './components/Login/Login';
-import CenteredElement from "./components/CenteredElement/CenteredElement";
 
 
 async function isLoggedIn(token: string | null) {
