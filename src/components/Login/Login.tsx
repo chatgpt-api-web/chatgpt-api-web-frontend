@@ -43,8 +43,8 @@ export default function Login({setToken}: { setToken: (token: string) => void })
             <Card>
                 <Typography variant="h1" sx={{px: 2, py: 2, fontSize: 32}}>Login</Typography>
                 <AutoAlert severity="error" sx={{py: 2}}>{errorMessage}</AutoAlert>
-                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}
-                       sx={{px: 2, py: 2}}>
+                <Stack direction="column" justifyContent="center" alignItems="center"
+                       spacing={2} sx={{px: 2, py: 2}}>
                     <TextField
                         fullWidth
                         label="Username"
