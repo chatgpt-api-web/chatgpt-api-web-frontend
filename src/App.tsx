@@ -39,12 +39,12 @@ export default function App() {
     // Begin -- Log in stuffs
     const [loggedInInitialized, setLoggedInInitialized] = useState<boolean>(false);
     const [loggedIn, setLoggedIn] = useState<boolean>(false);
-    const [token, setToken] = useState<string | null>(sessionStorage.getItem('token'));
+    const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
     const saveToken = (token: string | null) => {
         if (token) {
-            sessionStorage.setItem('token', token!);
+            localStorage.setItem('token', token!);
         } else {
-            sessionStorage.removeItem('token');
+            localStorage.removeItem('token');
         }
         setToken(token);
         setLoggedInInitialized(false);
