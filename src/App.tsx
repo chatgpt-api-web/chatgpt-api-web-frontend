@@ -1,9 +1,10 @@
 import React, {MouseEvent, useState} from 'react';
-import {Alert, Avatar, Button, List, ListItem, ListItemIcon, ListItemText, Stack, TextField,} from "@mui/material";
+import {Alert, Avatar, Button, List, ListItem, ListItemIcon, ListItemText, Stack, TextField} from "@mui/material";
 
 import './App.css';
 import Login from './components/Login/Login';
 import AutoAlert from "./components/AutoAlert/AutoAlert";
+import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 
 
 async function isLoggedIn(token: string | null) {
@@ -110,6 +111,7 @@ export default function App() {
 
     const handleLogout = (_: MouseEvent<HTMLButtonElement>) => {
         saveToken(null);
+        serviceWorkerRegistration.unregister();
     }
 
     // End -- Log in stuffs
