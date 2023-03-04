@@ -188,7 +188,7 @@ export default function App() {
                         return (
                             <ListItem>
                                 <ListItemIcon>
-                                    <Avatar variant="rounded" src="img/robot.svg"/>
+                                    <Avatar variant="rounded" src={`${process.env.PUBLIC_URL}/img/robot.svg`}/>
                                 </ListItemIcon>
                                 <ListItemText style={{whiteSpace: 'pre-wrap'}}>{dialog.content.trim()}</ListItemText>
                             </ListItem>
