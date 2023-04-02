@@ -165,7 +165,7 @@ export default function App() {
             }
         ).catch(
             (error) => {
-                setErrorText(error);
+                setErrorText(error.toString());
                 onSubmitEnded();
             }
         );
@@ -198,8 +198,8 @@ export default function App() {
             </List>
 
             <Stack sx={{py: 1}} spacing={1}>
-                <AutoAlert severity="error" children={errorText}/>
-                <AutoAlert severity="info" children={infoText}/>
+                <AutoAlert severity="error">{errorText}</AutoAlert>
+                <AutoAlert severity="info">{infoText}</AutoAlert>
                 <Alert severity="info">
                     Avoid polite or wordy language to save the use of token.
                 </Alert>
