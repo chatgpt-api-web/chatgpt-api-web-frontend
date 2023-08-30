@@ -70,7 +70,7 @@ async function getChatCompletions(token: string, contextDialogs: IDialog[]) {
 let waitingForResponse = false;
 
 export default function App() {
-    const [questionValueInput, setQuestionValueInput] = useState<string>("Tell me a joke");
+    const [questionValueInput, setQuestionValueInput] = useState<string>("");
     const [errorText, setErrorText] = useState<string | null>(null);
     const [infoText, setInfoText] = useState<string | null>(null);
 
