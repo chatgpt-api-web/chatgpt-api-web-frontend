@@ -76,7 +76,7 @@ export default function App() {
 
     const [dialogs, setDialogs] = useState<IDialog[]>([]);
     const clearDialogs = () => setDialogs([]);
-    const DIALOG_COUNT_MAX = 10;
+    const DIALOG_COUNT_MAX = 20;
 
     // Begin -- Log in stuffs
     const [loggedInInitialized, setLoggedInInitialized] = useState<boolean>(false);
