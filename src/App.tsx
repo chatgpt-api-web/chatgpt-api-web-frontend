@@ -7,8 +7,8 @@ import AutoAlert from "./components/AutoAlert/AutoAlert";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 
 
-async function isLoggedIn(token: string | null) {
-    if (!token) return;
+async function isLoggedIn(token: string | null): Promise<boolean> {
+    if (!token) return false;
     return fetch('/backend/auth/user/current/', {
         method: 'POST',
         headers: {
@@ -17,8 +17,11 @@ async function isLoggedIn(token: string | null) {
         },
     })
         .then((response) => response.json())
-        .then((data) => data['is_logged_in'])
-        .catch((err) => alert(err));
+        .then((data) => Boolean(data['is_logged_in'] || false))
+        .catch((err) => {
+            alert(err);
+            return false; // Explicitly return false in case of error
+        });
 }
 
 interface IDialog {
