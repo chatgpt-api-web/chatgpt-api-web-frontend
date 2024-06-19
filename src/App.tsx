@@ -30,6 +30,29 @@ interface IDialog {
 }
 
 async function getChatCompletions(model: string, token: string, contextDialogs: IDialog[]) {
+    function stringifyPossibleError(obj: any) {
+        // If obj is null or undefined, return an empty string.
+        if (!obj) return "";
+
+        // If obj.error.message exists and is a string, return it.
+        if (obj.error && obj.error.message && typeof obj.error.message === "string") {
+            return obj.error.message;
+        }
+
+        // If obj.error exists and is a string, return it.
+        if (obj.error && typeof obj.error === "string") {
+            return obj.error;
+        }
+
+        // If obj.message exists and is a string, return it.
+        if (obj.message && typeof obj.message === "string") {
+            return obj.message;
+        }
+
+        // Call stringify
+        return JSON.stringify(obj);
+    }
+
     console.assert(contextDialogs !== null, "contextDialogs should not be null")
     console.assert(contextDialogs.length !== 0, "contextDialogs should not be empty");
     for (let i in contextDialogs) {
@@ -48,15 +71,17 @@ async function getChatCompletions(model: string, token: string, contextDialogs: 
             'Authorization': `Token ${token!}`,
         },
     })
-        .then((response) => {
+        .then(async (response) => {
             if (response.status !== 200) {
-                throw new Error(`HTTP code ${response.status}`);
+                try {
+                    throw new Error(`HTTP code ${response.status} (backend). ${stringifyPossibleError(await response.json())}`);
+                } catch (error) {
+                    throw new Error(`HTTP code ${response.status} (backend).`);
+                }
             }
-            return response.json();
-        })
-        .then((data) => {
+            let data = await response.json();
             if (data.status !== 200) {
-                throw new Error(`HTTP code ${data['status']}`);
+                throw new Error(`HTTP code ${data.status} (remote). ${stringifyPossibleError(data.data)}`);
             }
             if (data.data === null) {
                 throw new Error("Empty response.");
