@@ -1,5 +1,5 @@
-import React, {MouseEvent, useState} from 'react';
-import {Alert, Avatar, Button, List, ListItem, ListItemIcon, ListItemText, Stack, TextField} from "@mui/material";
+import React, { MouseEvent, useState } from 'react';
+import { Alert, Avatar, Button, FormControl, InputLabel, List, ListItem, ListItemIcon, ListItemText, MenuItem, Select, Stack, TextField } from "@mui/material";
 
 import './App.css';
 import Login from './components/Login/Login';
@@ -29,7 +29,7 @@ interface IDialog {
     content: string;
 }
 
-async function getChatCompletions(token: string, contextDialogs: IDialog[]) {
+async function getChatCompletions(model: string, token: string, contextDialogs: IDialog[]) {
     console.assert(contextDialogs !== null, "contextDialogs should not be null")
     console.assert(contextDialogs.length !== 0, "contextDialogs should not be empty");
     for (let i in contextDialogs) {
@@ -40,7 +40,7 @@ async function getChatCompletions(token: string, contextDialogs: IDialog[]) {
     return fetch('/backend/openai/chat/completions/', {
         method: 'POST',
         body: JSON.stringify({
-            "model": "gpt-3.5-turbo",
+            "model": model,
             "messages": contextDialogs,
         }),
         headers: {
@@ -80,6 +80,8 @@ export default function App() {
     const [dialogs, setDialogs] = useState<IDialog[]>([]);
     const clearDialogs = () => setDialogs([]);
     const DIALOG_COUNT_MAX = 20;
+
+    const [model, setModel] = useState<string>("gpt-4-turbo-preview");
 
     // Begin -- Log in stuffs
     const [loggedInInitialized, setLoggedInInitialized] = useState<boolean>(false);
@@ -161,7 +163,7 @@ export default function App() {
         let newDialogs = [...dialogs, {role: "user", content: questionValueInput}];
         setDialogs(newDialogs);
 
-        return getChatCompletions(token!, newDialogs).then(
+        return getChatCompletions(model, token!, newDialogs).then(
             (retDialogs) => {
                 setDialogs(retDialogs);
                 onSubmitEnded();
@@ -218,16 +220,41 @@ export default function App() {
                     <Button onClick={handleClear} variant="outlined">Clear</Button>
                     <Button onClick={handleLogout} variant="outlined">Logout</Button>
                 </Stack>
-                <TextField
-                    fullWidth
-                    label="Input your message"
-                    value={questionValueInput} onChange={(e) => {
-                    setQuestionValueInput(e.target.value)
-                }}
-                    multiline
-                    maxRows={5}
-                    minRows={1}
-                />
+
+                <Stack width="100%" direction="column" alignItems="center" justifyContent="space-between" spacing={1}>
+
+                    <FormControl fullWidth>
+                        <InputLabel id="model-select-label">Model</InputLabel>
+                        <Select
+                            fullWidth
+                            label="Model"
+                            id="select-model"
+                            labelId="model-select-label"
+                            value={model}
+                            onChange={(e) => {
+                                setModel(e.target.value)
+                            }}
+                        >
+                        <MenuItem value="gpt-4o">gpt-4o</MenuItem>
+                            <MenuItem value="gpt-4-turbo-preview">gpt-4-turbo-preview</MenuItem>
+                            <MenuItem value="gpt-4-turbo">gpt-4-turbo</MenuItem>
+                            <MenuItem value="gpt-3.5-turbo">gpt-3.5-turbo</MenuItem>
+                            <MenuItem value="claude-3-opus-20240229">claude-3-opus-20240229</MenuItem>
+                            <MenuItem value="claude-3-sonnet-20240229">claude-3-sonnet-20240229</MenuItem>
+                            <MenuItem value="claude-3-haiku-20240307">claude-3-haiku-20240307</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <TextField
+                        fullWidth
+                        label="Input your message"
+                        value={questionValueInput} onChange={(e) => {
+                            setQuestionValueInput(e.target.value)
+                        }}
+                        multiline
+                        maxRows={5}
+                        minRows={1}
+                    />
+                </Stack>
                 <Button onClick={handleSubmit} variant="contained">Submit</Button>
             </Stack>
         </div>
