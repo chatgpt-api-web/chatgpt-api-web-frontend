@@ -16,4 +16,4 @@ RUN yarn build
 FROM busybox:1.34.1
 WORKDIR /src
 COPY --from=build /src/build build
-CMD [ "sh", "-c", "cp -r build/. /www/ && while :; do sleep 2073600; done" ]
+CMD [ "sh", "-c", "cp -r build/. /www/ && trap 'exit 0' TERM && while :; do sleep 1; done" ]
